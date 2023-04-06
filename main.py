@@ -89,44 +89,48 @@ class GameState:
         return 0 <= row < taille and 0 <= col < taille
 
     def is_valid_move(self, start_pos, end_pos):
+        res = True
         """
         Vérifie si le déplacement du pion de la position de départ à la position finale est valide.
         Retourne True si c'est le cas, False sinon.
         """
+        #if ((start_pos[0] == 6) & (start_pos[1] == 4)&(end_pos[0] == 4) & (end_pos[1] == 4)):
+            #print("debug2222222222")
+            #print(start_pos, end_pos)
         pion = self.board[start_pos[0]][start_pos[1]]
         # Vérifie que les positions de départ et d'arrivée sont valides
         if not self.is_valid_position(start_pos) or not self.is_valid_position(end_pos):
-            return False
+            res = False
 
         start_row, start_col = start_pos
         end_row, end_col = end_pos
 
         # Vérifie que la case de départ contient un pion
         if self.board[start_row][start_col] == 0:
-            return False
+            res = False
 
         # Vérifie que le déplacement se fait sur une ligne ou une colonne, pas en diagonale
         if start_row != end_row and start_col != end_col:
-            return False
+            res = False
         # Vérifie que toutes les cases empruntées sont vides
         if start_row == end_row:
             step = 1 if start_col < end_col else -1
             for col in range(start_col + step, end_col, step):
                 if self.board[start_row][col] != 0:
-                    return False
+                    res = False
         else:
-            step = 1 if start_row < end_row else -1
+            step = 1 if start_col < end_col else -1
             for row in range(start_row + step, end_row, step):
                 if self.board[row][start_col] != 0:
-                    return False
+                    res = False
 
         # Vérifie que le déplacement n'est pas sur une des forteresses ou le roi
 
         if pion ==1 :
-            if end_pos in [(0, 0), (0, taille-1), (taille-1, 0), (taille-1, taille-1),(int(taille/2)+1,int(taille/2)+1)]:
-                return False
+            if end_pos in [(0, 0), (0, taille-1), (taille-1, 0), (taille-1, taille-1),(int(taille/2),int(taille/2))]:
+                res = False
 
-        return True
+        return res
 
     def is_valid_position(self,pos):
         """
@@ -145,6 +149,8 @@ class GameState:
         for i in range(-start_pos[0], taille-start_pos[0]):
             end_pos = (start_pos[0] + i, start_pos[1])
             # Vérifie si le déplacement est valide et effectue le déplacement si c'est le cas
+            #print(start_pos,end_pos)
+            #print(self.is_valid_move(start_pos, end_pos))
             if self.is_valid_move(start_pos, end_pos):
 
                 new_board = GameState(self)
@@ -168,6 +174,7 @@ class GameState:
                     possible_move.append(end_pos)
                 except Exception as e:
                     #print(str(e))
+                    print((start_pos[0],start_pos[1], end_pos[0],end_pos[1]))
                     a=0;
 
         return possible_move
@@ -194,8 +201,9 @@ class GameState:
         voisin.append(((x+1,y),(x+2,y)))
         voisin.append(((x,y-1),(x,y-2)))
         voisin.append(((x,y+1),(x,y+2)))
-
+        i=-1
         for v in voisin :
+            i=i+1
             vx = v[0][0]
             vy = v[0][1]
             try:
@@ -204,7 +212,7 @@ class GameState:
                     if couleurv1 != maCouleur :
                         vx2 = v[1][0]
                         vy2 = v[1][1]
-                        if(v[1] in [(0, 0), (0, taille-1), (taille-1, 0), (taille-1, taille-1),(int(taille/2)+1,int(taille/2)+1)]):
+                        if((vx2,vy2) in [(0, 0), (0, taille-1), (taille-1, 0), (taille-1, taille-1),(int(taille/2)+1,int(taille/2)+1)]):
                             self.board[vx][vy]=0
                         else:
                             couleurv2 = 1 if self.board[vx2][vy2] == 1 else 2
@@ -214,47 +222,56 @@ class GameState:
                 #print(str(e))
                 a=0
 
-
+def afficherEtatMinMax_Profondeur(game, profondeur,joueur):
+    if profondeur != 0 :
+        for pion in game.get_pion_joueur(joueur):
+            for move in game.get_possible_move(pion):
+                new_board = GameState(game)
+                new_board.move_piece(pion[0], pion[1], move[0], move[1])
+                new_board.print_board()
+                afficherEtatMinMax_Profondeur(new_board,profondeur-1,not joueur)
+                print("-------------------------------------------------")
 
 game = GameState()
-"""
-board_str = '0 0 1 1 1 0 0\n' \
-            '0 0 0 1 0 0 0\n' \
-            '1 0 2 2 2 0 1\n' \
-            '1 1 2 3 2 1 1\n' \
-            '1 0 2 2 2 0 1\n' \
-            '0 0 0 1 0 0 0\n' \
-            '0 0 1 1 1 0 0\n'
-"""
-board_str = '0 0 1 1 1 0 0\n' \
-            '0 0 0 1 0 0 0\n' \
-            '1 0 2 2 2 0 1\n' \
-            '1 1 2 3 2 1 1\n' \
-            '1 0 2 2 2 0 1\n' \
-            '0 0 0 1 0 0 0\n' \
-            '0 0 1 1 1 0 0\n'
 
+board_str = '0 0 1 1 1 0 0\n' \
+            '0 0 0 1 0 0 0\n' \
+            '1 0 2 2 2 0 1\n' \
+            '1 1 2 3 2 1 1\n' \
+            '1 0 2 2 2 0 1\n' \
+            '0 0 0 1 0 0 0\n' \
+            '0 0 1 1 1 0 0\n'
+"""
+board_str = '0 0 1 1 1 0 0\n' \
+            '0 0 0 1 0 0 0\n' \
+            '1 0 2 2 2 0 1\n' \
+            '1 1 2 3 2 1 1\n' \
+            '1 0 2 2 0 2 1\n' \
+            '0 0 0 1 0 0 0\n' \
+            '0 0 1 1 1 0 0\n'
+"""
 game.set_board(board_str)
 game.print_board()
 
+afficherEtatMinMax_Profondeur(game,2,True)
 
 
 
 """
 """
-ii=0
-for pion in game.get_pion_joueur(True) :
 
-    for move in game.get_possible_move(pion):
-        new_board = GameState(game)
-        new_board.move_piece(pion[0], pion[1], move[0], move[1])
-        new_board.print_board()
-        print("-------------------------------------------------")
-        for pion2 in new_board.get_pion_joueur(False):
+
+
+
+
+
+#game.move_piece(6,2,6,0)
+#game.print_board()
+"""        for pion2 in new_board.get_pion_joueur(False):
             for move2 in new_board.get_possible_move(pion2):
                 new_board2 = GameState(new_board)
                 new_board2.move_piece(pion2[0], pion2[1], move2[0], move2[1])
                 new_board2.print_board()
-
-#game.move_piece(6,2,6,0)
-#game.print_board()
+        
+        """
+#Executer et voir dans les derneir depalacement que la capture ne fonctionne pas corectement
