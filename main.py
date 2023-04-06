@@ -2,8 +2,9 @@
 from colorama import init, Fore, Back, Style
 
 global taille
-
 taille =7
+global affichagemax
+affichagemax =0
 
 class GameState:
     """initialise le plateau à vide , si other != null alors le nouveau plateau est copier sur other"""
@@ -94,9 +95,7 @@ class GameState:
         Vérifie si le déplacement du pion de la position de départ à la position finale est valide.
         Retourne True si c'est le cas, False sinon.
         """
-        #if ((start_pos[0] == 6) & (start_pos[1] == 4)&(end_pos[0] == 4) & (end_pos[1] == 4)):
-            #print("debug2222222222")
-            #print(start_pos, end_pos)
+
         pion = self.board[start_pos[0]][start_pos[1]]
         # Vérifie que les positions de départ et d'arrivée sont valides
         if not self.is_valid_position(start_pos) or not self.is_valid_position(end_pos):
@@ -149,8 +148,7 @@ class GameState:
         for i in range(-start_pos[0], taille-start_pos[0]):
             end_pos = (start_pos[0] + i, start_pos[1])
             # Vérifie si le déplacement est valide et effectue le déplacement si c'est le cas
-            #print(start_pos,end_pos)
-            #print(self.is_valid_move(start_pos, end_pos))
+
             if self.is_valid_move(start_pos, end_pos):
 
                 new_board = GameState(self)
@@ -174,7 +172,6 @@ class GameState:
                     possible_move.append(end_pos)
                 except Exception as e:
                     #print(str(e))
-                    print((start_pos[0],start_pos[1], end_pos[0],end_pos[1]))
                     a=0;
 
         return possible_move
@@ -201,18 +198,17 @@ class GameState:
         voisin.append(((x+1,y),(x+2,y)))
         voisin.append(((x,y-1),(x,y-2)))
         voisin.append(((x,y+1),(x,y+2)))
-        i=-1
         for v in voisin :
-            i=i+1
             vx = v[0][0]
             vy = v[0][1]
+
             try:
-                if(self.board[vx][vy]!= 0):
+                vx2 = v[1][0]
+                vy2 = v[1][1]
+                if(self.board[vx][vy] != 0 and self.board[vx2][vy2]!= 0):
                     couleurv1 = 1 if self.board[vx][vy] == 1 else 2
                     if couleurv1 != maCouleur :
-                        vx2 = v[1][0]
-                        vy2 = v[1][1]
-                        if((vx2,vy2) in [(0, 0), (0, taille-1), (taille-1, 0), (taille-1, taille-1),(int(taille/2)+1,int(taille/2)+1)]):
+                        if((vx2,vy2) in [(0, 0), (0, taille-1), (taille-1, 0), (taille-1, taille-1),(int(taille/2),int(taille/2))]):
                             self.board[vx][vy]=0
                         else:
                             couleurv2 = 1 if self.board[vx2][vy2] == 1 else 2
@@ -228,9 +224,18 @@ def afficherEtatMinMax_Profondeur(game, profondeur,joueur):
             for move in game.get_possible_move(pion):
                 new_board = GameState(game)
                 new_board.move_piece(pion[0], pion[1], move[0], move[1])
-                new_board.print_board()
-                afficherEtatMinMax_Profondeur(new_board,profondeur-1,not joueur)
-                print("-------------------------------------------------")
+                #new_board.print_board()
+                afficherEtatMinMax_Profondeur(new_board,profondeur-1,not joueur,)
+    else:
+        global affichagemax
+        if affichagemax < 20 :
+            affichagemax =  affichagemax+1
+            game.print_board()
+            print("------------------------------")
+
+
+
+
 
 game = GameState()
 
@@ -253,8 +258,9 @@ board_str = '0 0 1 1 1 0 0\n' \
 game.set_board(board_str)
 game.print_board()
 
-afficherEtatMinMax_Profondeur(game,2,True)
+afficherEtatMinMax_Profondeur(game,970,True)
 
+print("fin")
 
 
 """
