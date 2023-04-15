@@ -1,3 +1,4 @@
+import random
 
 grandeDonnee = [[31, 242, 392, 208, 48, 135, 232, 37, 1255, 32, 7, 663, 350, 1378, 17, 412, 44, 905, 409, 613, 599, 301, 2, 6, 69, 12],
          [158, 2, 1, 2, 130, 1, 2, 0, 132, 4, 10, 181, 1, 1, 146, 1, 3, 187, 29, 16, 44, 3, 0, 0, 4, 0],
@@ -34,13 +35,27 @@ petiteDonnee = [
     [312, 0, 73, 19],
     [427, 1, 8, 24]
 ]
-
+alphabet = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 petit_clavier = [[0 for j in range(3)] for i in range(2)]
+
+tabu_size = 10  #Taille du tabou
+tabou =[]       #liste du tabou
+
 
 # classe de l'état du clavier de 4 * 10
 class GrandClavier:
-    def __init__(self):
-        self.tableau = [[' '] * 10 for _ in range(4)]
+    # other pour inicialisé un nouvel etat a partir d'un autre ( genre le parent )
+    def __init__(self, other=None):
+        if other is None:
+            self.tableau = [[' '] * 10 for _ in range(4)]
+        else:
+            self.board = [row.copy() for row in other.tableau]
+
+    #fonction qui renvoie un paire de paire de coordonnées aléatoire dans le tableau
+    def get_random_coordonnee(self):
+        i1, j1 = random.randint(0, 3), random.randint(0, 9)
+        i2, j2 = random.randint(0, 3), random.randint(0, 9)
+        return ((i1,j1),(i2,(j2)))
 
     def afficher(self):
         for i in range(4):
@@ -62,3 +77,20 @@ class matriceBooleen:
 
     def get(self, i, j):
         return self.matrice[i][j]
+
+    def evaluer_etat(self,christant: GrandClavier): # christant le clavier
+        matBool : matriceBooleen
+        for i in range(0, 3):
+            for j in range(0,9):
+                case = christant.get(i,j)
+                if case != ' ' :
+                    positionLettre1 = alphabet.index(case)
+                    #Jai pas fini ça mais en gros faut prendrte la position de chaque lettre voisine de la case
+                    # faut faire gaffe a pas dépacé faire de out of bande
+                    # et apres faut inicialisé la matrice de boolean en mettant a 1 : matriceboolean.set(positionLettre1, positionVoisin)
+        #puis evaluer avec la fonction evaluer
+
+
+
+
+
