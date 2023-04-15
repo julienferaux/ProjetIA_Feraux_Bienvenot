@@ -50,7 +50,7 @@ class GameState:
                     (self.board[start_row][start_col] != 3 ):
             raise ValueError("There is no piece to move in the starting position :" + str(self.board[start_row][start_col]))
         if self.board[end_row][end_col] != 0:
-            raise ValueError("The destination position is not empty")
+            raise ValueError("The destination position is not empty : start :",self.board[start_row][start_col]," end : ",self.board[end_row][end_col])
 
         value  = self.board[start_row][start_col]
 
@@ -188,6 +188,17 @@ class GameState:
                         positions.append((i, j))
         return positions
 
+    def get_roi(self):
+        position = []
+        trouve = False
+        for i in range(0,taille):
+            for j in range(0,taille):
+                if self.board[i][j] == 3 :
+                    position.append((i,j))
+                    trouve = True
+        if not trouve:
+            raise ValueError("Le roi n'a pas était trouvé")
+
     def capture_opponents2(self, last_move):
 
         x = last_move[0]
@@ -217,6 +228,94 @@ class GameState:
             except Exception as e:
                 #print(str(e))
                 a=0
+    def evaluer(self):
+        #r1 c'est les blanc
+        r1 = len(self.get_pion_joueur(True))
+        #r2 c'est les noir
+        r2 = len(self.get_pion_joueur(False))
+        tmp = r2
+
+        r2 = r2 + (9-r1)
+        r1 = r1 + (16-tmp)
+
+        try:
+            posR = self.get_roi()
+            if posR in [(0, 0), (0, taille-1), (taille-1, 0), (taille-1, taille-1)]:
+                r1 = 99999
+        except Exception as e:
+            print(str(e))
+
+            #le roi est mort ce soir
+            r2 = 99999
+        return (r1,r2)
+
+    def is_leaf(self):
+        res = False
+        try:
+            posR = self.get_roi()
+            if posR in [(0, 0), (0, taille-1), (taille-1, 0), (taille-1, taille-1)]:
+                res = True
+        except Exception as e:
+            print(str(e))
+            res = True
+            #le roi est mort ce soir
+        return res
+""" """
+
+
+class Node:
+    def __init__(self, gameState, move=None):
+        self.gameState = gameState
+        self.move = move
+        self.children = []
+        self.score = gameState.evaluer()
+
+    def is_leaf(self):
+        return game.is_leaf()
+
+
+def alpha_beta_pruning2(node, depth, alpha, beta, maximizing_player):
+    # Si le nœud est une feuille ou la profondeur maximale est atteinte, renvoyer la valeur du nœud
+    if depth == 0 or node.is_leaf():
+        numJoueur = 0 if maximizing_player else 1
+        return node.gameState.evaluer()[numJoueur]
+
+    # Si c'est le tour du joueur maximisant, initialiser la valeur de l'alpha à - infini
+    if maximizing_player:
+        value = -float('inf')
+        for pion in node.gameState.get_pion_joueur(maximizing_player):
+            for move in node.gameState.get_possible_move(pion):
+                new_board = GameState(game)
+
+                try:
+                    new_board.move_piece(pion[0], pion[1], move[0], move[1])
+                    child_node = Node(new_board, move)
+
+                    value = max(value, alpha_beta_pruning2(child_node, depth - 1, alpha, beta, not maximizing_player))
+                    alpha = max(alpha, value)
+                    if beta <= alpha:
+                        break
+                except :
+                    break
+
+        return value
+    # Sinon, c'est le tour du joueur minimisant, initialiser la valeur du bêta à + infini
+    else:
+        value = float('inf')
+        for pion in node.gameState.get_pion_joueur(maximizing_player):
+            for move in node.gameState.get_possible_move(pion):
+                new_board = GameState(game)
+                try:
+                    new_board.move_piece(pion[0], pion[1], move[0], move[1])
+                    child_node = Node(new_board, move)
+                    value = min(value, alpha_beta_pruning2(child_node, depth - 1, alpha, beta, not maximizing_player))
+                    beta = min(beta, value)
+                    if beta <= alpha:
+                        break
+                except :
+                    break
+        return value
+
 
 def afficherEtatMinMax_Profondeur(game, profondeur,joueur):
     if profondeur != 0 :
@@ -225,20 +324,21 @@ def afficherEtatMinMax_Profondeur(game, profondeur,joueur):
                 new_board = GameState(game)
                 new_board.move_piece(pion[0], pion[1], move[0], move[1])
                 #new_board.print_board()
-                afficherEtatMinMax_Profondeur(new_board,profondeur-1,not joueur,)
+                afficherEtatMinMax_Profondeur(new_board,profondeur-1,not joueur)
     else:
         global affichagemax
-        if affichagemax < 20 :
-            affichagemax =  affichagemax+1
+        affichagemax = affichagemax + 1
+        if affichagemax > 50000 and affichagemax < 52000:
             game.print_board()
-            print("------------------------------")
+            print("-----",affichagemax,"-------------------------")
+            print(game.evaluer())
 
 
 
 
 
 game = GameState()
-
+"""
 board_str = '0 0 1 1 1 0 0\n' \
             '0 0 0 1 0 0 0\n' \
             '1 0 2 2 2 0 1\n' \
@@ -254,22 +354,29 @@ board_str = '0 0 1 1 1 0 0\n' \
             '1 0 2 2 0 2 1\n' \
             '0 0 0 1 0 0 0\n' \
             '0 0 1 1 1 0 0\n'
-"""
+
 game.set_board(board_str)
 game.print_board()
 
-afficherEtatMinMax_Profondeur(game,970,True)
+#afficherEtatMinMax_Profondeur(game,100,True)
+node = Node(game)
+joueur = False
+for pion in game.get_pion_joueur(joueur):
+    for move in game.get_possible_move(pion):
+
+        new_board = GameState(game)
+        new_board.move_piece(pion[0], pion[1], move[0], move[1])
+        child_node = Node(new_board, move)
+
+        child_node.gameState.print_board()
+        node_res = alpha_beta_pruning2(child_node, 4, -float('inf'), float('inf'), joueur)
+
+        print(node_res)
 
 print("fin")
 
-
 """
 """
-
-
-
-
-
 
 #game.move_piece(6,2,6,0)
 #game.print_board()
