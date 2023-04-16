@@ -1,5 +1,8 @@
 import random
 
+global tailleX
+tailleX = 9
+tailleY = 3
 grandeDonnee = [[31, 242, 392, 208, 48, 135, 232, 37, 1255, 32, 7, 663, 350, 1378, 17, 412, 44, 905, 409, 613, 599, 301, 2, 6, 69, 12],
          [158, 2, 1, 2, 130, 1, 2, 0, 132, 4, 10, 181, 1, 1, 146, 1, 3, 187, 29, 16, 44, 3, 0, 0, 4, 0],
          [312, 0, 73, 19, 765, 2, 2, 411, 209, 3, 5, 124, 5, 1, 677, 11, 7, 100, 14, 142, 132, 2, 0, 0, 11, 0],
@@ -38,25 +41,16 @@ petiteDonnee = [
 alphabet = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 petit_clavier = [[0 for j in range(3)] for i in range(2)]
 
-tabu_size = 10  #Taille du tabou
-tabou =[]       #liste du tabou
-
-
 # classe de l'état du clavier de 4 * 10
-class GrandClavier:
+class grandClavier:
     # other pour inicialisé un nouvel etat a partir d'un autre ( genre le parent )
     def __init__(self, other=None):
         if other is None:
             self.tableau = [[' '] * 10 for _ in range(4)]
         else:
-            self.board = [row.copy() for row in other.tableau]
+            self.tableau = [row.copy() for row in other.tableau]
 
     #fonction qui renvoie un paire de paire de coordonnées aléatoire dans le tableau
-    def get_random_coordonnee(self):
-        i1, j1 = random.randint(0, 3), random.randint(0, 9)
-        i2, j2 = random.randint(0, 3), random.randint(0, 9)
-        return ((i1,j1),(i2,(j2)))
-
     def afficher(self):
         for i in range(4):
             print(' '.join(self.tableau[i]))
@@ -67,10 +61,55 @@ class GrandClavier:
     def get(self, i, j):
         return self.tableau[i][j]
 
+    def permuter(self, mouve):
+        lettre1 = self.get(mouve[0][0],mouve[0][1])
+        lettre2 = self.get(mouve[1][0],mouve[1][1])
+        self.set(mouve[0][0],mouve[0][1],lettre2)
+        self.set(mouve[1][0],mouve[1][1],lettre1)
+
+    def evaluer_etat(christant):  # christant le clavier
+        matBool = matriceBooleen()
+        for i in range(0, 4):
+            for j in range(0, 10):
+                case = christant.get(i, j)
+                if case != ' ':
+                    positionLettre1 = alphabet.index(case)
+                    if i < 2:
+                        case2 = christant.get(i + 1, j)
+                        if case2 != ' ':
+                            positionLettre2 = alphabet.index(case2)
+                            matBool.set(positionLettre1, positionLettre2, 1)
+                            matBool.set(positionLettre2, positionLettre1, 1)
+                    if i > 0:
+                        case3 = christant.get(i - 1, j)
+                        if case3 != ' ':
+                            positionLettre3 = alphabet.index(case3)
+                            matBool.set(positionLettre1, positionLettre3, 1)
+                            matBool.set(positionLettre3, positionLettre1, 1)
+                    if j < 9:
+                        case4 = christant.get(i, j + 1)
+                        if case4 != ' ':
+                            positionLettre4 = alphabet.index(case4)
+                            matBool.set(positionLettre1, positionLettre4, 1)
+                            matBool.set(positionLettre4, positionLettre1, 1)
+                    if j > 0:
+                        case5 = christant.get(i, j - 1)
+                        if case5 != ' ':
+                            positionLettre5 = alphabet.index(case5)
+                            matBool.set(positionLettre1, positionLettre5, 1)
+                            matBool.set(positionLettre5, positionLettre1, 1)
+        res = 0
+        for i in range(0, 26):
+            for j in range(0, 26):
+                res += matBool.get(i, j) * grandeDonnee[i][j]
+
+        #matBool.afficher()
+        return res
+
 # matrice de booleen pour evaluer un etat
 class matriceBooleen:
     def __init__(self):
-        self.matrice = [[False] * 26 for _ in range(26)]
+        self.matrice = [[0] * 26 for _ in range(26)]
 
     def set(self, i, j, value):
         self.matrice[i][j] = value
@@ -78,19 +117,73 @@ class matriceBooleen:
     def get(self, i, j):
         return self.matrice[i][j]
 
-    def evaluer_etat(self,christant: GrandClavier): # christant le clavier
-        matBool : matriceBooleen
-        for i in range(0, 3):
-            for j in range(0,9):
-                case = christant.get(i,j)
-                if case != ' ' :
-                    positionLettre1 = alphabet.index(case)
-                    #Jai pas fini ça mais en gros faut prendrte la position de chaque lettre voisine de la case
-                    # faut faire gaffe a pas dépacé faire de out of bande
-                    # et apres faut inicialisé la matrice de boolean en mettant a 1 : matriceboolean.set(positionLettre1, positionVoisin)
-        #puis evaluer avec la fonction evaluer
+    def afficher(self):
+        for i in range(26):
+            for j in range(26):
+                print(self.matrice[i][j], end="")
+            print()
+
+def get_random_coordonnee():
+    i1, j1 = random.randint(0, 3), random.randint(0, 9)
+    i2, j2 = random.randint(0, 3), random.randint(0, 9)
+    return ((i1,j1),(i2,(j2)))
+
+def get_max_paire(listeMouvement):
+    max_value = float('-inf')
+    max_pair = None
+    for pair in listeMouvement:
+        if pair[1] > max_value:
+            max_value = pair[1]
+            max_pair = pair
+    return max_pair
+
+clavier = grandClavier()
+clavier.tableau =   [[' ', 'C', ' ', ' ', 'R', 'K', 'W', ' ', ' ', 'I'],
+                    ['T', 'O', 'U', 'B', 'P', 'A', 'M', ' ', 'J', ' '],
+                    ['Q', 'S', 'V', ' ', 'N', 'L', 'H', ' ', 'X', 'G'],
+                    [' ', ' ', 'E', 'Z', 'D', 'F', 'Y', ' ', ' ', ' ']]
+
+tabu_size = 10  #Taille du tabou
+nbMouvementTester = 100
+tabou = []       #liste du tabou
+
+clavier.afficher()
+print(clavier.evaluer_etat())
+print()
+i=0
+listeMouvement = []
+while( i < 1000):
+    if (i%100 == 0):
+        print(int(i/100),"%fi")
+    listeMouvement = []
+    for j in range(nbMouvementTester):
+        mouve = get_random_coordonnee()
+        fils = grandClavier(clavier)
+        fils.permuter(mouve)
+        listeMouvement.append((mouve,fils.evaluer_etat() ))
+
+    max_pair = get_max_paire(listeMouvement)
+    if (len(tabou) > tabu_size):
+        tabou.pop(0)
+    while 1 :
+        max_pair = get_max_paire(listeMouvement)
+        if (max_pair[0] in tabou) :
+            listeMouvement.pop(listeMouvement.index(max_pair))
+        else:
+            break
+    clavier.permuter(max_pair[0])
+    tabou.append(max_pair[0])
+    i+=1
 
 
 
 
-
+clavier.afficher()
+print(clavier.evaluer_etat())
+"""
+  F Q   Y P Z      
+M O U D T A R G    
+K B L E N C H J    
+  W I S V X        
+34537
+"""
