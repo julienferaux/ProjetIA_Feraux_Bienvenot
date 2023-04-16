@@ -1,5 +1,5 @@
 import random
-
+import sys
 global tailleX
 tailleX = 9
 tailleY = 3
@@ -67,7 +67,7 @@ class grandClavier:
         self.set(mouve[0][0],mouve[0][1],lettre2)
         self.set(mouve[1][0],mouve[1][1],lettre1)
 
-    def evaluer_etat(christant):  # christant le clavier
+    def evaluer_etat(christant):  # christiant le clavier
         matBool = matriceBooleen()
         for i in range(0, 4):
             for j in range(0, 10):
@@ -144,6 +144,11 @@ clavier.tableau =   [[' ', 'C', ' ', ' ', 'R', 'K', 'W', ' ', ' ', 'I'],
                     [' ', ' ', 'E', 'Z', 'D', 'F', 'Y', ' ', ' ', ' ']]
 
 tabu_size = 10  #Taille du tabou
+
+if len(sys.argv) > 1:
+    nbMouvement = int(sys.argv[1])
+else:
+    nbMouvement = 100
 nbMouvementTester = 100
 tabou = []       #liste du tabou
 
@@ -153,9 +158,7 @@ print()
 i=0
 listeMouvement = []
 # baisser i pour aller plus vite mais moins bien
-while( i < 10000):
-    if (i%100 == 0):
-        print(int(i/100),"%")
+while( i < nbMouvement):
     listeMouvement = []
     for j in range(nbMouvementTester):
         mouve = get_random_coordonnee()
