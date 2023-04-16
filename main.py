@@ -152,6 +152,7 @@ print(clavier.evaluer_etat())
 print()
 i=0
 listeMouvement = []
+# baisser i pour aller plus vite mais moins bien
 while( i < 10000):
     if (i%100 == 0):
         print(int(i/100),"%")
@@ -175,11 +176,9 @@ while( i < 10000):
     tabou.append(max_pair[0])
     i+=1
 
-
-
-
 clavier.afficher()
 print(clavier.evaluer_etat())
+
 """
   G D E S R V X    
   F U L I A P Y    
