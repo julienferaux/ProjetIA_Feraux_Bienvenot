@@ -152,9 +152,9 @@ print(clavier.evaluer_etat())
 print()
 i=0
 listeMouvement = []
-while( i < 1000):
+while( i < 10000):
     if (i%100 == 0):
-        print(int(i/100),"%fi")
+        print(int(i/100),"%")
     listeMouvement = []
     for j in range(nbMouvementTester):
         mouve = get_random_coordonnee()
@@ -181,9 +181,9 @@ while( i < 1000):
 clavier.afficher()
 print(clavier.evaluer_etat())
 """
-  F Q   Y P Z      
-M O U D T A R G    
-K B L E N C H J    
-  W I S V X        
-34537
+  G D E S R V X    
+  F U L I A P Y    
+    Q B T N O M K  
+      J H C W Z    
+34620
 """
